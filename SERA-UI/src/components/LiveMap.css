@@ -1,0 +1,95 @@
+/* LiveMap.css */
+
+.map-root {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Zone pulse circles */
+.zone-pulse-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zone-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.zone-pulse-ring.delay1 { animation-delay: 0.6s; }
+.zone-pulse-ring.delay2 { animation-delay: 1.2s; }
+
+.zone-pulse-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 12px currentColor;
+  position: relative;
+  z-index: 1;
+}
+
+.zone-label {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  color: white;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* Heatmap overlay SVG */
+.heatmap-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 400;
+}
+
+/* Safe route SVG */
+.route-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 401;
+  overflow: visible;
+}
+
+/* Ripple SOS */
+.sos-ripple-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 402;
+  overflow: hidden;
+}
+
+.sos-ripple {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.3);
+  animation: ripple 2s ease-out infinite;
+}
+
+/* Prediction zone dashes */
+.prediction-zone {
+  stroke-dasharray: 12 6;
+  animation: dash-march 1s linear infinite;
+  stroke-width: 2.5;
+}
