@@ -1,0 +1,227 @@
+/* LiveMap.css */
+
+.map-root {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Zone pulse circles */
+.zone-pulse-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zone-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.zone-pulse-ring.delay1 { animation-delay: 0.6s; }
+.zone-pulse-ring.delay2 { animation-delay: 1.2s; }
+
+.zone-pulse-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 12px currentColor;
+  position: relative;
+  z-index: 1;
+}
+
+.zone-label {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  color: white;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* Heatmap overlay SVG */
+.heatmap-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 400;
+}
+
+/* Safe route SVG */
+.route-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 401;
+  overflow: visible;
+}
+
+/* Ripple SOS */
+.sos-ripple-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 402;
+  overflow: hidden;
+}
+
+.sos-ripple {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.3);
+  animation: ripple 2s ease-out infinite;
+}
+
+/* Prediction zone dashes */
+.prediction-zone {
+  stroke-dasharray: 12 6;
+  animation: dash-march 1s linear infinite;
+  stroke-width: 2.5;
+}
+
+/* ===== User GPS Location Marker ===== */
+.user-location-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-loc-wrap {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-loc-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2.5px solid white;
+  box-shadow: 0 0 8px rgba(59,130,246,0.7), 0 2px 6px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.user-loc-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.3);
+  animation: user-pulse 2s ease-out infinite;
+  z-index: 1;
+}
+
+.user-loc-pulse.delay2 {
+  animation-delay: 0.8s;
+}
+
+@keyframes user-pulse {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ===== Destination Pin Marker ===== */
+.destination-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.dest-marker-wrap {
+  position: relative;
+  width: 28px;
+  height: 36px;
+}
+
+.dest-marker-pin {
+  width: 28px;
+  height: 28px;
+  background: #ef4444;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 8px rgba(239,68,68,0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.dest-marker-pin::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+.dest-marker-shadow {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.2);
+}
+
+/* ===== Simulation Moving Marker ===== */
+.sim-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.sim-marker-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sim-marker-arrow {
+  width: 22px;
+  height: 22px;
+  background: #4285F4;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(66,133,244,0.5), 0 0 0 4px rgba(66,133,244,0.15);
+  position: relative;
+  z-index: 2;
+}
+
+.sim-marker-pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: rgba(66,133,244,0.25);
+  animation: sim-pulse 1.5s ease-out infinite;
+  z-index: 1;
+}
+
+@keyframes sim-pulse {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
