@@ -2,11 +2,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Camera, Zap, Route, CheckCircle, Loader } from 'lucide-react';
 
 const PIPELINE_STEPS = [
-  { id: 0, icon: Camera,      label: 'Analyzing camera input…',  color: '#3b6ef8' },
-  { id: 1, icon: Brain,       label: 'Classifying event type…',   color: '#7c3aed' },
-  { id: 2, icon: Zap,         label: 'Predicting risk spread…',   color: '#f59e0b' },
-  { id: 3, icon: Route,       label: 'Calculating safe route…',   color: '#10c97c' },
-  { id: 4, icon: CheckCircle, label: 'Dispatching output…',       color: '#3b6ef8' },
+  { id: 0, icon: Camera, label: 'Analyzing camera input…', color: '#000000' },
+  { id: 1, icon: Brain, label: 'Classifying event type…', color: '#7c3aed' },
+  { id: 2, icon: Zap, label: 'Predicting risk spread…', color: '#f59e0b' },
+  { id: 3, icon: Route, label: 'Calculating safe route…', color: '#10c97c' },
+  { id: 4, icon: CheckCircle, label: 'Dispatching output…', color: '#3b6ef8' },
 ];
 
 function PipelineStep({ step, active, done }) {
@@ -40,7 +40,7 @@ function PipelineStep({ step, active, done }) {
         style={{
           fontSize: 11,
           fontWeight: active ? 600 : done ? 500 : 400,
-          color: active ? step.color : done ? 'var(--clr-text-secondary)' : 'var(--clr-text-muted)',
+          color: active ? step.color : '#000000',
           letterSpacing: '0.01em',
           flex: 1,
           transition: 'color 0.3s ease',
@@ -70,8 +70,8 @@ export default function AIPipelinePanel({ aiPipeline }) {
       transition={{ duration: 0.5, delay: 0.3 }}
       style={{
         position: 'absolute',
-        bottom: 100,
-        left: 16,
+        bottom: 16,
+        left: 252,
         width: 240,
         zIndex: 600,
         borderRadius: 'var(--radius-lg)',
@@ -96,7 +96,7 @@ export default function AIPipelinePanel({ aiPipeline }) {
         >
           <Brain size={14} color="var(--clr-primary)" />
         </motion.div>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--clr-text-primary)', letterSpacing: '0.05em' }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#000000', letterSpacing: '0.05em' }}>
           AI PIPELINE
         </span>
         <AnimatePresence>

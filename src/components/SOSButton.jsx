@@ -142,12 +142,12 @@ export default function SOSButton({ onSOS, sosActive, meshBroadcast, isOffline }
       <motion.div
         style={{
           position: 'absolute',
-          bottom: 130,
-          right: 24,
+          top: 64,
+          right: 16,
           zIndex: 700,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           gap: 8,
           pointerEvents: 'auto',
         }}
