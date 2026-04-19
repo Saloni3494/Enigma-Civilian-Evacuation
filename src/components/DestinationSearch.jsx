@@ -284,6 +284,28 @@ export default function DestinationSearch({ userLocation, zones, onRouteFound, o
                 )}
               </div>
             </div>
+
+            {/* Smart Flyover Suggestion */}
+            {routeResult.flyovers && routeResult.flyovers.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                style={{
+                  marginTop: 12, padding: '10px 12px', background: 'rgba(168, 85, 247, 0.1)',
+                  border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 10
+                }}
+              >
+                <div style={{ background: 'rgba(168, 85, 247, 0.2)', padding: 6, borderRadius: 8, display: 'flex' }}>
+                  <span style={{ fontSize: 18 }}>🌉</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#9333ea' }}>Smart Route Suggestion</div>
+                  <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>
+                    This route includes <b>{routeResult.flyovers.length} elevated flyover{routeResult.flyovers.length > 1 ? 's' : ''}</b>. Recommended to take the flyover for a safer and faster journey.
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

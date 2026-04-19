@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Polyline, Circle, Marker, useMap, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Polyline, Circle, Marker, useMap, Popup, Tooltip } from 'react-leaflet';
 import { Satellite, Hospital, Home, Shield } from 'lucide-react';
 import L from 'leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -403,6 +403,29 @@ function DestinationRoute({ route }) {
           lineJoin: 'round',
         }}
       />
+      {/* Flyover Highlights */}
+      {route.flyovers && route.flyovers.map((flyover, idx) => (
+        <Polyline
+          key={`flyover-${idx}`}
+          positions={[flyover.startCoords, flyover.endCoords]}
+          pathOptions={{
+            color: '#a855f7', // distinct purple for flyovers
+            weight: 6,
+            opacity: 1,
+            lineCap: 'round',
+            lineJoin: 'round',
+            dashArray: '10, 8' // dashed to indicate elevation
+          }}
+        >
+          <Tooltip sticky direction="top" className="flyover-tooltip">
+            <div style={{ fontWeight: 'bold', color: '#a855f7' }}>🌉 {flyover.name}</div>
+            <div style={{ fontSize: '11px', color: '#475569' }}>
+              Elevation: +{flyover.elevation}m<br/>
+              Recommended Route
+            </div>
+          </Tooltip>
+        </Polyline>
+      ))}
     </>
   );
 }
@@ -598,6 +621,47 @@ export default function LiveMap({ zones, facilities, sosActive, routeBlocked, sh
     };
   }, [trackedPhone]);
 
+  // Real-Time Flyover Proximity Detection
+  const [activeFlyoverAlert, setActiveFlyoverAlert] = useState(null);
+  
+  useEffect(() => {
+    if (!userPos || !searchedRoute || !searchedRoute.flyovers) return;
+
+    // Haversine distance in meters
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // metres
+      const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+      const φ2 = lat2 * Math.PI/180;
+      const Δφ = (lat2-lat1) * Math.PI/180;
+      const Δλ = (lon2-lon1) * Math.PI/180;
+
+      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    let detectedAlert = null;
+    for (const flyover of searchedRoute.flyovers) {
+      const dist = getDistanceMeters(userPos[0], userPos[1], flyover.startCoords[0], flyover.startCoords[1]);
+      
+      // If within 100 meters of the flyover entry point
+      if (dist < 100) {
+        detectedAlert = {
+          id: flyover.id,
+          name: flyover.name,
+          distance: Math.round(dist),
+          message: `Flyover ahead. Recommended to take this route.`
+        };
+        break;
+      }
+    }
+
+    setActiveFlyoverAlert(detectedAlert);
+
+  }, [userPos, searchedRoute]);
+
   // When a destination is selected via search, set it for navigation
   const handleRouteFound = useCallback((route) => {
     setSearchedRoute(route);
@@ -649,8 +713,38 @@ export default function LiveMap({ zones, facilities, sosActive, routeBlocked, sh
         )}
       </AnimatePresence>
 
-      {/* GPS Fallback Button */}
-      {!userPos && !manualPinMode && (
+      {/* Flyover Proximity Alert */}
+      <AnimatePresence>
+        {activeFlyoverAlert && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            style={{
+              position: 'absolute', bottom: 180, left: '50%', transform: 'translateX(-50%)',
+              zIndex: 850, background: 'rgba(168, 85, 247, 0.95)', color: 'white',
+              padding: '12px 20px', borderRadius: 16, fontSize: 13, fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', boxShadow: '0 8px 24px rgba(168, 85, 247, 0.4)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+              border: '2px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)',
+              width: 'max-content', maxWidth: '90vw'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <span style={{ fontSize: 18 }}>🌉</span> {activeFlyoverAlert.name}
+            </div>
+            <div style={{ fontSize: 12, opacity: 0.9, textAlign: 'center' }}>
+              {activeFlyoverAlert.message}
+            </div>
+            <div style={{ fontSize: 11, opacity: 0.8, marginTop: 2, background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: 10 }}>
+              Entry in {activeFlyoverAlert.distance}m
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GPS Fallback / Override Button */}
+      {!manualPinMode && (
         <motion.button
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -782,6 +876,7 @@ export default function LiveMap({ zones, facilities, sosActive, routeBlocked, sh
         destination={selectedDest}
         userLocation={userPos}
         zones={zones}
+        searchedRoute={searchedRoute}
         onRouteReady={(route) => setOsrmRoute(route)}
         onSimulationPosition={setSimPosition}
         onSubmitFeedback={onSubmitFeedback}

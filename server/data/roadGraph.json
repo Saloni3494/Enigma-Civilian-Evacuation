@@ -152,5 +152,23 @@
     "n25": "zone-e", "n26": "zone-e", "n27": "zone-e", "n28": "zone-e", "n29": "zone-e",
     "n30": null, "n31": null, "n32": null, "n33": null, "n34": null, "n35": null,
     "n36": null, "n37": null, "n38": null, "n40": null, "n41": null, "n44": null, "n45": null
-  }
+  },
+  "flyovers": [
+    {
+      "id": "flyover_1",
+      "name": "Central Elevated Corridor",
+      "startNode": "n30",
+      "endNode": "n31",
+      "distance": 380,
+      "elevation": 10
+    },
+    {
+      "id": "flyover_2",
+      "name": "North Bridge Bypass",
+      "startNode": "n45",
+      "endNode": "n30",
+      "distance": 520,
+      "elevation": 12
+    }
+  ]
 }

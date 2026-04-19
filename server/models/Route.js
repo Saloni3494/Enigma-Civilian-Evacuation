@@ -11,6 +11,7 @@ export async function createRoute(data) {
     start: data.start,
     end: data.end,
     path: data.path || [],
+    flyovers: data.flyovers || [],
     safety_score: data.safety_score ?? 0,
     distance: data.distance || 0,
     created_at: new Date(),

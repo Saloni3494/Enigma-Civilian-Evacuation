@@ -17,16 +17,20 @@ router.post('/safe', async (req, res) => {
       });
     }
 
-    // Get current zone statuses
+    // Get current zone statuses and events for hazard weighting
     const db = getDB();
-    const zones = await db.collection('zones').find({});
+    const zonesCursor = await db.collection('zones').find({});
+    const zones = await zonesCursor.toArray();
     const zoneStatuses = {};
     for (const zone of zones) {
       zoneStatuses[zone.zone_id] = zone.status;
     }
 
+    const eventsCursor = await db.collection('events').find({}, { sort: { timestamp: -1 }, limit: 100 });
+    const events = await eventsCursor.toArray();
+
     // Run A* pathfinding
-    const pathResult = findSafePath(start, destination, zoneStatuses);
+    const pathResult = findSafePath(start, destination, zoneStatuses, events);
 
     if (!pathResult) {
       return res.status(404).json({
@@ -41,6 +45,7 @@ router.post('/safe', async (req, res) => {
       start,
       end: destination,
       path: pathResult.path,
+      flyovers: pathResult.flyovers || [],
       safety_score: pathResult.safety_score,
       distance: pathResult.distance,
     });

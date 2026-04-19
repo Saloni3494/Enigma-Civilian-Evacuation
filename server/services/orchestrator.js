@@ -142,12 +142,17 @@ function predictRisks(events, zones) {
 }
 
 // --- Safe Path Agent (A* Algorithm) ---
-function findSafePath(startCoord, endCoord, zoneStatuses) {
+function findSafePath(startCoord, endCoord, zoneStatuses, events = []) {
   if (!roadGraph) return null;
 
   const nodes = roadGraph.nodes;
   const edges = roadGraph.edges;
   const zoneMap = roadGraph.zone_mapping;
+  const flyovers = roadGraph.flyovers || [];
+
+  // Check if there's a flood or fire event
+  const isFlood = events.some(e => e.type === 'flood' || e.description?.toLowerCase().includes('flood'));
+  const isFire = events.some(e => e.type === 'fire' || e.type === 'camera_detection' || e.description?.toLowerCase().includes('fire'));
 
   // Find nearest graph nodes to start and end coordinates
   function findNearestNode(lat, lng) {
@@ -173,6 +178,15 @@ function findSafePath(startCoord, endCoord, zoneStatuses) {
   for (const nodeId of Object.keys(nodes)) {
     adjacency[nodeId] = [];
   }
+
+  // Create a quick lookup for flyovers
+  const flyoverEdges = {};
+  for (const f of flyovers) {
+    flyoverEdges[`${f.startNode}-${f.endNode}`] = f;
+    flyoverEdges[`${f.endNode}-${f.startNode}`] = f;
+  }
+
+  // Add standard edges and flyovers
   for (const edge of edges) {
     const fromZone = zoneMap[edge.from];
     const toZone = zoneMap[edge.to];
@@ -188,11 +202,30 @@ function findSafePath(startCoord, endCoord, zoneStatuses) {
 
     const fromRisk = riskWeight(fromZone);
     const toRisk = riskWeight(toZone);
-    const avgRisk = (fromRisk + toRisk) / 2;
+    let avgRisk = (fromRisk + toRisk) / 2;
+    
+    // Check if this edge is a flyover
+    const flyover = flyoverEdges[`${edge.from}-${edge.to}`];
+    let isFlyover = false;
+
+    if (flyover) {
+      isFlyover = true;
+      if (isFlood) {
+        // High elevation is great during floods! Massively prefer this.
+        avgRisk = 0.1; 
+      } else if (isFire) {
+        // Flyovers trap smoke and are hard to evacuate from during fire.
+        avgRisk = 15;
+      } else {
+        // Generally prefer flyovers for faster routing (no traffic)
+        avgRisk = 0.5;
+      }
+    }
+
     const cost = edge.distance * avgRisk;
 
-    adjacency[edge.from].push({ to: edge.to, cost, distance: edge.distance });
-    adjacency[edge.to].push({ to: edge.from, cost, distance: edge.distance }); // bidirectional
+    adjacency[edge.from].push({ to: edge.to, cost, distance: edge.distance, isFlyover, flyoverData: flyover });
+    adjacency[edge.to].push({ to: edge.from, cost, distance: edge.distance, isFlyover, flyoverData: flyover }); // bidirectional
   }
 
   // A* heuristic: haversine-like distance
@@ -238,6 +271,25 @@ function findSafePath(startCoord, endCoord, zoneStatuses) {
       const coordinates = path.map(n => [nodes[n].lat, nodes[n].lng]);
       const totalDistance = gScore[endNode];
 
+      // Extract flyovers used in this path
+      const usedFlyovers = [];
+      for (let i = 0; i < path.length - 1; i++) {
+        const from = path[i];
+        const to = path[i+1];
+        const f = flyoverEdges[`${from}-${to}`];
+        if (f) {
+          // Avoid duplicates if a flyover spans multiple small segments
+          if (!usedFlyovers.find(uf => uf.id === f.id)) {
+            usedFlyovers.push({
+              ...f,
+              startCoords: [nodes[f.startNode].lat, nodes[f.startNode].lng],
+              endCoords: [nodes[f.endNode].lat, nodes[f.endNode].lng],
+              recommended: true
+            });
+          }
+        }
+      }
+
       // Calculate safety score (inverse of total risk encountered)
       const maxPossibleCost = path.length * 500 * 10; // worst case
       const safetyScore = Math.max(0, Math.min(100, 100 * (1 - totalDistance / maxPossibleCost)));
@@ -245,6 +297,7 @@ function findSafePath(startCoord, endCoord, zoneStatuses) {
       return {
         path: coordinates,
         nodes: path,
+        flyovers: usedFlyovers,
         distance: totalDistance,
         safety_score: Math.round(safetyScore),
       };
@@ -381,7 +434,7 @@ export async function runOrchestration(triggerEvent = null) {
       });
 
       if (!safePathResult) {
-        safePathResult = findSafePath(unsafeZone.center, safeZone.center, zoneStatuses);
+        safePathResult = findSafePath(unsafeZone.center, safeZone.center, zoneStatuses, events);
       }
 
       if (safePathResult) {
@@ -389,6 +442,7 @@ export async function runOrchestration(triggerEvent = null) {
           start: unsafeZone.center,
           end: safeZone.center,
           path: safePathResult.path,
+          flyovers: safePathResult.flyovers || [],
           safety_score: safePathResult.safety_score,
           distance: safePathResult.distance,
         });

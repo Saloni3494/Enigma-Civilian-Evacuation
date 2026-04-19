@@ -13,6 +13,7 @@ import './NavigationPanel.css';
 function ManeuverIcon({ type, modifier, size = 28, color = 'white' }) {
   if (type === 'arrive') return <MapPin size={size} color={color} />;
   if (type === 'depart') return <Navigation2 size={size} color={color} />;
+  if (type === 'flyover') return <span style={{ fontSize: size - 4, filter: color === 'white' ? 'none' : 'grayscale(1) brightness(0.5)' }}>🌉</span>;
 
   if (modifier?.includes('right')) return <CornerUpRight size={size} color={color} />;
   if (modifier?.includes('left')) return <CornerUpLeft size={size} color={color} />;
@@ -39,6 +40,7 @@ export default function NavigationPanel({
   destination,
   userLocation,
   zones,
+  searchedRoute,
   onRouteReady,
   onSimulationPosition,
   onSubmitFeedback,
@@ -69,6 +71,44 @@ export default function NavigationPanel({
 
     getOSRMRoute(start[0], start[1], destination.lat, destination.lng).then(result => {
       if (result) {
+        // Inject Flyover Instructions from searchedRoute
+        if (searchedRoute && searchedRoute.flyovers && searchedRoute.flyovers.length > 0) {
+          searchedRoute.flyovers.forEach(flyover => {
+            // Find closest step in OSRM route to inject the flyover maneuver
+            let closestStepIdx = 0;
+            let minDist = Infinity;
+            
+            result.instructions.forEach((step, idx) => {
+              const dist = Math.sqrt(
+                Math.pow(step.location[1] - flyover.startCoords[0], 2) + 
+                Math.pow(step.location[0] - flyover.startCoords[1], 2)
+              );
+              if (dist < minDist) {
+                minDist = dist;
+                closestStepIdx = idx;
+              }
+            });
+
+            // Insert a synthetic flyover instruction if it's reasonably close (<0.01 deg)
+            if (minDist < 0.01) {
+              result.instructions.splice(closestStepIdx + 1, 0, {
+                id: `flyover_${flyover.id}`,
+                instruction: `Take the flyover: ${flyover.name}`,
+                distance: flyover.distance,
+                duration: flyover.distance / 15, // rough estimate
+                maneuver: 'flyover',
+                modifier: 'straight',
+                location: [flyover.startCoords[1], flyover.startCoords[0]],
+                name: flyover.name,
+                isFlyover: true
+              });
+            }
+          });
+          
+          // Re-index instructions
+          result.instructions.forEach((step, idx) => step.id = idx);
+        }
+
         setRoute(result);
         setState('ready');
         if (onRouteReady) onRouteReady(result);
