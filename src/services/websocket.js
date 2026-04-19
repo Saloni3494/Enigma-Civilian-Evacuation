@@ -1,6 +1,7 @@
 // SERA WebSocket Client with auto-reconnect
 // Connects directly to backend (no Vite proxy for WS – avoids HMR conflict)
-const WS_URL = import.meta.env?.VITE_WS_URL || 'ws://localhost:3001/ws';
+const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+const WS_URL = import.meta.env?.VITE_WS_URL || `ws://${host}:3001/ws`;
 
 let ws = null;
 let reconnectTimer = null;

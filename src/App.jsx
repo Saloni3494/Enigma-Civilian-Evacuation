@@ -195,6 +195,7 @@ export default function App() {
           onSubmitFeedback={store.submitFeedback}
           userRecommendations={store.userRecommendations}
           trackedPhone={store.trackedPhone}
+          hardwareDevices={store.hardwareDevices}
         />
       </Suspense>
 

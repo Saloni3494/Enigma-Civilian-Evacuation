@@ -216,7 +216,7 @@ function UserLocationMarker({ trackedPhone }) {
             const [lat, lng] = res.location;
             setPosition([lat, lng]);
             setAccuracy(10); // arbitrary good accuracy for tracked phone
-            
+
             if (!hasPannedRef.current) {
               hasPannedRef.current = true;
               map.setView([lat, lng], 15, { animate: true });
@@ -226,10 +226,10 @@ function UserLocationMarker({ trackedPhone }) {
           console.warn('Failed to get tracked phone location:', err);
         }
       };
-      
+
       pollLocation();
       pollInterval = setInterval(pollLocation, 3000); // poll every 3 seconds
-      
+
     } else {
       // Use local device GPS
       if (!navigator.geolocation) {
@@ -249,10 +249,10 @@ function UserLocationMarker({ trackedPhone }) {
             if (saved) {
               const user = JSON.parse(saved);
               if (user.email) {
-                updateLocation(user.email, [latitude, longitude]).catch(() => {});
+                updateLocation(user.email, [latitude, longitude]).catch(() => { });
               }
             }
-          } catch(e) {}
+          } catch (e) { }
 
           // Pan to user location on first GPS fix
           if (!hasPannedRef.current) {
@@ -490,6 +490,56 @@ function facilityIconHTML(type) {
   </div>`;
 }
 
+// Hardware ESP32 Tag Marker
+function HardwareDeviceMarker({ device }) {
+  const map = useMap();
+  const markerRef = useRef(null);
+
+  useEffect(() => {
+    if (!device || !device.lat || !device.lng) return;
+
+    if (markerRef.current) {
+      map.removeLayer(markerRef.current);
+    }
+
+    const isDistress = device.sos === true;
+    const bg = isDistress ? '#ef4444' : '#3b82f6';
+    const ring = isDistress ? 'rgba(239, 68, 68, 0.4)' : 'rgba(59, 130, 246, 0.4)';
+    const tempText = device.temperature ? `| ${device.temperature.toFixed(1)}°C` : '';
+    const animClass = isDistress ? 'hardware-sos-pulse' : '';
+
+    const icon = L.divIcon({
+      className: 'hardware-marker',
+      html: `
+        <div style="position:relative; width:16px; height:16px;">
+          <div class="${animClass}" style="position:absolute; inset:-8px; border-radius:50%; background:${ring};"></div>
+          <div style="position:absolute; inset:0; border-radius:50%; background:${bg}; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3); z-index:2;"></div>
+          <div style="position:absolute; top:-20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; font-size:9px; padding:2px 6px; border-radius:4px; white-space:nowrap; font-weight:700;">
+            ${device.device_id.split('_').pop()} ${tempText}
+          </div>
+        </div>
+      `,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+
+    const marker = L.marker([device.lat, device.lng], { icon })
+      .addTo(map)
+      .bindPopup(`
+        <div style="font-family:Inter,sans-serif;min-width:140px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:4px">Device: ${device.device_id}</div>
+          <div style="font-size:11px;color:#475569">Status: <b style="color:${bg}">${isDistress ? 'SOS ACTIVE' : 'ONLINE'}</b></div>
+          ${device.temperature ? `<div style="font-size:11px;color:#475569">Temp: ${device.temperature.toFixed(1)}°C</div>` : ''}
+        </div>
+      `);
+
+    markerRef.current = marker;
+    return () => { if (marker) map.removeLayer(marker); };
+  }, [device, map]);
+
+  return null;
+}
+
 // Manual pin selection via map click
 function ManualPinSelector({ enabled, onPinSelect }) {
   const map = useMap();
@@ -507,8 +557,8 @@ function ManualPinSelector({ enabled, onPinSelect }) {
   return null;
 }
 
-export default function LiveMap({ zones, facilities, sosActive, routeBlocked, showPrediction, onZoneSelect, onSubmitFeedback, userRecommendations, trackedPhone }) {
-  const center = [12.9716, 77.5946];
+export default function LiveMap({ zones, facilities, sosActive, routeBlocked, showPrediction, onZoneSelect, onSubmitFeedback, userRecommendations, trackedPhone, hardwareDevices }) {
+  const center = [18.464140, 73.867642]; // Pune (matches SERA Tag location)
   const [searchedRoute, setSearchedRoute] = useState(null);
   const [userPos, setUserPos] = useState(null);
   const [selectedDest, setSelectedDest] = useState(null);
@@ -529,7 +579,7 @@ export default function LiveMap({ zones, facilities, sosActive, routeBlocked, sh
           if (res && res.success && res.location) {
             setUserPos([res.location[0], res.location[1]]);
           }
-        } catch (e) {}
+        } catch (e) { }
       };
       poll();
       pollInterval = setInterval(poll, 3000);
@@ -668,6 +718,11 @@ export default function LiveMap({ zones, facilities, sosActive, routeBlocked, sh
           <ZoneMarker key={zone.id} zone={zone} />
         ))}
 
+        {/* Hardware ESP32 Tags */}
+        {hardwareDevices && Object.values(hardwareDevices).map(dev => (
+          <HardwareDeviceMarker key={dev.device_id} device={dev} />
+        ))}
+
         {/* User's real-time GPS location */}
         <UserLocationMarker trackedPhone={trackedPhone} />
 
@@ -703,7 +758,7 @@ export default function LiveMap({ zones, facilities, sosActive, routeBlocked, sh
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{f.name}</div>
                   <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.type}</div>
                   <div style={{ marginTop: 6, fontSize: 11 }}>
-                    Capacity: {f.capacity}<br/>
+                    Capacity: {f.capacity}<br />
                     Available: <span style={{ color: f.available < 50 ? '#ef4444' : '#10c97c', fontWeight: 600 }}>{f.available}</span>
                   </div>
                   <div style={{ fontSize: 10, color: f.status === 'operational' ? '#10c97c' : '#ef4444', fontWeight: 600, marginTop: 4 }}>

@@ -22,6 +22,8 @@ export async function updateDevice(deviceId, data) {
         last_seen: new Date(),
         ...(data.last_location && { last_location: data.last_location }),
         ...(data.status && { status: data.status }),
+        ...(data.temperature !== undefined && { temperature: data.temperature }),
+        ...(data.label && { label: data.label }),
       },
     }
   );
@@ -39,5 +41,6 @@ export async function upsertDevice(deviceId, data) {
     last_seen: new Date(),
     last_location: data.last_location || { type: 'Point', coordinates: [77.5946, 12.9716] },
     status: data.status || 'online',
+    temperature: data.temperature || null,
   });
 }

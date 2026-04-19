@@ -297,11 +297,14 @@ export async function runOrchestration(triggerEvent = null) {
     broadcastPipelineProgress(0, true);
 
     // Get all recent events and zones
-    const events = await db.collection('events').find(
+    const eventsCursor = await db.collection('events').find(
       {},
       { sort: { timestamp: -1 }, limit: 100 }
     );
-    const zones = await db.collection('zones').find({});
+    const events = await eventsCursor.toArray();
+
+    const zonesCursor = await db.collection('zones').find({});
+    const zones = await zonesCursor.toArray();
 
     // Note: The trigger event is already broadcast by the route handler (events.js / devices.js)
     // No duplicate broadcast needed here

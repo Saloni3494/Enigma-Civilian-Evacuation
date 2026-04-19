@@ -5,19 +5,19 @@ import * as api from './services/api.js';
 import * as ws from './services/websocket.js';
 
 export const ZONES = [
-  { id: 'zone-a', name: 'Sector 4 – Downtown', lat: 12.9716, lng: 77.5946, status: 'safe', population: 4200 },
-  { id: 'zone-b', name: 'Sector 7 – Market', lat: 12.9781, lng: 77.6088, status: 'warn', population: 2800 },
-  { id: 'zone-c', name: 'Sector 12 – Industrial', lat: 12.9634, lng: 77.6007, status: 'danger', population: 1500 },
-  { id: 'zone-d', name: 'Sector 2 – Residential', lat: 12.9850, lng: 77.5900, status: 'safe', population: 6100 },
-  { id: 'zone-e', name: 'Sector 9 – Convention', lat: 12.9700, lng: 77.6150, status: 'safe', population: 3300 },
+  { id: 'zone-a', name: 'Sector 4 – Shivajinagar', lat: 18.4641, lng: 73.8626, status: 'safe', population: 4200 },
+  { id: 'zone-b', name: 'Sector 7 – Deccan', lat: 18.4661, lng: 73.8676, status: 'warn', population: 2800 },
+  { id: 'zone-c', name: 'Sector 12 – Hadapsar', lat: 18.4550, lng: 73.8750, status: 'danger', population: 1500 },
+  { id: 'zone-d', name: 'Sector 2 – Koregaon Park', lat: 18.4700, lng: 73.8550, status: 'safe', population: 6100 },
+  { id: 'zone-e', name: 'Sector 9 – Kothrud', lat: 18.4650, lng: 73.8800, status: 'safe', population: 3300 },
 ];
 
 export const MESH_DEVICES = [
-  { id: 'dev-1', lat: 12.9716, lng: 77.5946, label: 'Node-A1', online: true },
-  { id: 'dev-2', lat: 12.9781, lng: 77.6088, label: 'Node-B2', online: true },
-  { id: 'dev-3', lat: 12.9634, lng: 77.6007, label: 'Node-C3', online: false },
-  { id: 'dev-4', lat: 12.9850, lng: 77.5900, label: 'Node-D4', online: true },
-  { id: 'dev-5', lat: 12.9700, lng: 77.6150, label: 'Node-E5', online: true },
+  { id: 'dev-1', lat: 18.4641, lng: 73.8626, label: 'Node-A1', online: true },
+  { id: 'dev-2', lat: 18.4661, lng: 73.8676, label: 'Node-B2', online: true },
+  { id: 'dev-3', lat: 18.4550, lng: 73.8750, label: 'Node-C3', online: false },
+  { id: 'dev-4', lat: 18.4700, lng: 73.8550, label: 'Node-D4', online: true },
+  { id: 'dev-5', lat: 18.4650, lng: 73.8800, label: 'Node-E5', online: true },
 ];
 
 const INITIAL_TIMELINE = [
@@ -55,6 +55,7 @@ export function useSeraStore() {
   }); // { name, role, id, email, phone }
   const [userRecommendations, setUserRecommendations] = useState([]);
   const [trackedPhone, setTrackedPhone] = useState('');
+  const [hardwareDevices, setHardwareDevices] = useState({});
 
   const backendRef = useRef(false);
 
@@ -77,6 +78,29 @@ export function useSeraStore() {
             setFacilities(data.facilities);
           }
         });
+        // Fetch hardware devices from backend and show on map
+        fetch('/api/device')
+          .then(r => r.json())
+          .then(data => {
+            if (data?.devices) {
+              const devMap = {};
+              for (const d of data.devices) {
+                if (d.device_id && d.last_location?.coordinates) {
+                  devMap[d.device_id] = {
+                    device_id: d.device_id,
+                    lat: d.last_location.coordinates[1],
+                    lng: d.last_location.coordinates[0],
+                    temperature: d.temperature || null,
+                    status: d.status || 'online',
+                    sos: d.status === 'sos',
+                    timestamp: Date.now(),
+                  };
+                }
+              }
+              setHardwareDevices(devMap);
+            }
+          })
+          .catch(() => {});
       }
     });
 
@@ -110,6 +134,41 @@ export function useSeraStore() {
           const id = alert.alert_id || Date.now();
           setAlerts(prev => [{ id, msg: alert.msg, severity: alert.severity }, ...prev.slice(0, 4)]);
           setTimeout(() => setAlerts(prev => prev.filter(a => a.id !== id)), 5000);
+
+          // Trigger Native OS Notification or Fallback Simulation
+          if ("Notification" in window) {
+            if (Notification.permission === "granted") {
+              new Notification("⚠️ SERA Emergency Alert", {
+                body: alert.msg,
+                icon: "/vite.svg"
+              });
+            } else if (Notification.permission !== "denied") {
+              Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                  new Notification("⚠️ SERA Emergency Alert", {
+                    body: alert.msg,
+                    icon: "/vite.svg"
+                  });
+                } else {
+                  triggerSmsFallback(alert.msg);
+                }
+              });
+            } else {
+              triggerSmsFallback(alert.msg);
+            }
+          } else {
+            triggerSmsFallback(alert.msg);
+          }
+
+          function triggerSmsFallback(msg) {
+            // If on a mobile device, this will open the actual SMS app offline
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+              window.location.href = `sms:?body=${encodeURIComponent("⚠️ SERA Emergency: " + msg)}`;
+            } else {
+              window.alert(`📱 [OFFLINE SMS SIMULATION]\n\n⚠️ SERA Emergency Alert\n${msg}`);
+            }
+          }
         }
       }),
 
@@ -139,8 +198,17 @@ export function useSeraStore() {
 
       ws.onMessage('sos_active', ({ device_id }) => {
         setSosActive(true);
-        setMeshBroadcast(true);
+        if (ws.isConnected) setMeshBroadcast(true);
         setTimeout(() => { setSosActive(false); setMeshBroadcast(false); }, 6000);
+      }),
+
+      ws.onMessage('DEVICE_UPDATE', ({ device }) => {
+        if (device && device.device_id) {
+          setHardwareDevices(prev => ({
+            ...prev,
+            [device.device_id]: device
+          }));
+        }
       }),
 
       ws.onMessage('sync_status', (status) => {
@@ -209,7 +277,12 @@ export function useSeraStore() {
 
     if (backendRef.current) {
       // Backend handles: SOS event, alerts, orchestration – all via WebSocket
-      await api.sendSOS('dev-2', { type: 'Point', coordinates: [77.6088, 12.9781] }, 'Node-B2');
+      await api.sendSOS('ESP32_TAG_001', { type: 'Point', coordinates: [73.867642, 18.464140] }, 'SERA-TAG');
+
+      // Trigger the physical buzzer on the ESP32 hardware
+      try {
+        await fetch('/api/device/buzzer', { method: 'POST' });
+      } catch (e) { /* ESP32 may not be connected */ }
     } else {
       addAlert('🆘 SOS Broadcast active – mesh relay engaged', 'danger');
       addTimeline({ type: 'sos', message: 'SOS activated – broadcasting via mesh network', zone: 'zone-b', severity: 'danger' });
@@ -219,8 +292,8 @@ export function useSeraStore() {
         api.queueOfflineEvent({
           type: 'SOS',
           source: 'device',
-          device_id: 'dev-2',
-          location: { type: 'Point', coordinates: [77.6088, 12.9781] },
+          device_id: 'ESP32_TAG_001',
+          location: { type: 'Point', coordinates: [73.867642, 18.464140] },
           confidence: 1.0,
           description: 'SOS activated – broadcasting via mesh network',
           severity: 'danger',
@@ -342,5 +415,6 @@ export function useSeraStore() {
     userRecommendations,
     submitFeedback,
     trackedPhone, setTrackedPhone,
+    hardwareDevices,
   };
 }

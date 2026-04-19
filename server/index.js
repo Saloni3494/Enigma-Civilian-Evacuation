@@ -118,13 +118,29 @@ async function start() {
   // Initialize WebSocket
   initWebSocket(server);
 
+  // Start ESP32 Hardware Poller (offline hotspot mode)
+  try {
+    const { startESP32Poller } = await import('./services/esp32Poller.js');
+    startESP32Poller();
+  } catch (e) {
+    console.warn('⚠️  ESP32 Poller could not start:', e.message);
+  }
+
   // Start listening
-  server.listen(config.PORT, () => {
+  server.listen(config.PORT, '0.0.0.0', () => {
     console.log('');
     console.log(`🚀 SERA Backend running on http://localhost:${config.PORT}`);
     console.log(`📡 WebSocket available at ws://localhost:${config.PORT}/ws`);
     console.log(`📋 API docs at http://localhost:${config.PORT}/api`);
     console.log(`💾 Storage: ${isUsingMemory() ? 'In-Memory (offline mode)' : 'MongoDB'}`);
+    console.log('');
+    console.log('──────────────────────────────────────────────');
+    console.log('  📡 OFFLINE HARDWARE MODE:');
+    console.log('  1. Power on the ESP32 Smart Tag');
+    console.log('  2. Connect this laptop WiFi to "SERA_TAG_001"');
+    console.log('     Password: sera1234');
+    console.log('  3. Data will flow automatically!');
+    console.log('──────────────────────────────────────────────');
     console.log('');
   });
 

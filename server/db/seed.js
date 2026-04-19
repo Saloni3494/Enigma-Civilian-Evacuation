@@ -5,16 +5,16 @@ import crypto from 'crypto';
 const SEED_ZONES = [
   {
     zone_id: 'zone-a',
-    name: 'Sector 4 – Downtown',
+    name: 'Sector 4 – Shivajinagar',
     polygon: {
       type: 'Polygon',
       coordinates: [[
-        [77.5896, 12.9766], [77.5996, 12.9766],
-        [77.5996, 12.9666], [77.5896, 12.9666],
-        [77.5896, 12.9766],
+        [73.8576, 18.4691], [73.8676, 18.4691],
+        [73.8676, 18.4591], [73.8576, 18.4591],
+        [73.8576, 18.4691],
       ]],
     },
-    center: { lat: 12.9716, lng: 77.5946 },
+    center: { lat: 18.4641, lng: 73.8626 },
     status: 'SAFE',
     risk_score: 12,
     population: 4200,
@@ -22,16 +22,16 @@ const SEED_ZONES = [
   },
   {
     zone_id: 'zone-b',
-    name: 'Sector 7 – Market',
+    name: 'Sector 7 – Deccan',
     polygon: {
       type: 'Polygon',
       coordinates: [[
-        [77.6038, 12.9831], [77.6138, 12.9831],
-        [77.6138, 12.9731], [77.6038, 12.9731],
-        [77.6038, 12.9831],
+        [73.8626, 18.4711], [73.8726, 18.4711],
+        [73.8726, 18.4611], [73.8626, 18.4611],
+        [73.8626, 18.4711],
       ]],
     },
-    center: { lat: 12.9781, lng: 77.6088 },
+    center: { lat: 18.4661, lng: 73.8676 },
     status: 'MODERATE',
     risk_score: 55,
     population: 2800,
@@ -39,16 +39,16 @@ const SEED_ZONES = [
   },
   {
     zone_id: 'zone-c',
-    name: 'Sector 12 – Industrial',
+    name: 'Sector 12 – Hadapsar',
     polygon: {
       type: 'Polygon',
       coordinates: [[
-        [77.5957, 12.9684], [77.6057, 12.9684],
-        [77.6057, 12.9584], [77.5957, 12.9584],
-        [77.5957, 12.9684],
+        [73.8700, 18.4600], [73.8800, 18.4600],
+        [73.8800, 18.4500], [73.8700, 18.4500],
+        [73.8700, 18.4600],
       ]],
     },
-    center: { lat: 12.9634, lng: 77.6007 },
+    center: { lat: 18.4550, lng: 73.8750 },
     status: 'UNSAFE',
     risk_score: 87,
     population: 1500,
@@ -56,16 +56,16 @@ const SEED_ZONES = [
   },
   {
     zone_id: 'zone-d',
-    name: 'Sector 2 – Residential',
+    name: 'Sector 2 – Koregaon Park',
     polygon: {
       type: 'Polygon',
       coordinates: [[
-        [77.5850, 12.9900], [77.5950, 12.9900],
-        [77.5950, 12.9800], [77.5850, 12.9800],
-        [77.5850, 12.9900],
+        [73.8500, 18.4750], [73.8600, 18.4750],
+        [73.8600, 18.4650], [73.8500, 18.4650],
+        [73.8500, 18.4750],
       ]],
     },
-    center: { lat: 12.9850, lng: 77.5900 },
+    center: { lat: 18.4700, lng: 73.8550 },
     status: 'SAFE',
     risk_score: 8,
     population: 6100,
@@ -73,16 +73,16 @@ const SEED_ZONES = [
   },
   {
     zone_id: 'zone-e',
-    name: 'Sector 9 – Convention',
+    name: 'Sector 9 – Kothrud',
     polygon: {
       type: 'Polygon',
       coordinates: [[
-        [77.6100, 12.9750], [77.6200, 12.9750],
-        [77.6200, 12.9650], [77.6100, 12.9650],
-        [77.6100, 12.9750],
+        [73.8750, 18.4700], [73.8850, 18.4700],
+        [73.8850, 18.4600], [73.8750, 18.4600],
+        [73.8750, 18.4700],
       ]],
     },
-    center: { lat: 12.9700, lng: 77.6150 },
+    center: { lat: 18.4650, lng: 73.8800 },
     status: 'SAFE',
     risk_score: 15,
     population: 3300,
@@ -91,11 +91,12 @@ const SEED_ZONES = [
 ];
 
 const SEED_DEVICES = [
-  { device_id: 'dev-1', label: 'Node-A1', last_seen: new Date(), last_location: { type: 'Point', coordinates: [77.5946, 12.9716] }, status: 'online' },
-  { device_id: 'dev-2', label: 'Node-B2', last_seen: new Date(), last_location: { type: 'Point', coordinates: [77.6088, 12.9781] }, status: 'online' },
-  { device_id: 'dev-3', label: 'Node-C3', last_seen: new Date(Date.now() - 600000), last_location: { type: 'Point', coordinates: [77.6007, 12.9634] }, status: 'offline' },
-  { device_id: 'dev-4', label: 'Node-D4', last_seen: new Date(), last_location: { type: 'Point', coordinates: [77.5900, 12.9850] }, status: 'online' },
-  { device_id: 'dev-5', label: 'Node-E5', last_seen: new Date(), last_location: { type: 'Point', coordinates: [77.6150, 12.9700] }, status: 'online' },
+  { device_id: 'ESP32_TAG_001', label: 'SERA-TAG', last_seen: new Date(), last_location: { type: 'Point', coordinates: [73.867642, 18.464140] }, status: 'online', temperature: 28.5 },
+  { device_id: 'dev-1', label: 'Node-A1', last_seen: new Date(), last_location: { type: 'Point', coordinates: [73.8626, 18.4641] }, status: 'online' },
+  { device_id: 'dev-2', label: 'Node-B2', last_seen: new Date(), last_location: { type: 'Point', coordinates: [73.8676, 18.4661] }, status: 'online' },
+  { device_id: 'dev-3', label: 'Node-C3', last_seen: new Date(Date.now() - 600000), last_location: { type: 'Point', coordinates: [73.8750, 18.4550] }, status: 'offline' },
+  { device_id: 'dev-4', label: 'Node-D4', last_seen: new Date(), last_location: { type: 'Point', coordinates: [73.8550, 18.4700] }, status: 'online' },
+  { device_id: 'dev-5', label: 'Node-E5', last_seen: new Date(), last_location: { type: 'Point', coordinates: [73.8800, 18.4650] }, status: 'online' },
 ];
 
 const SEED_EVENTS = [
@@ -103,22 +104,22 @@ const SEED_EVENTS = [
     event_id: 'evt-seed-1',
     type: 'camera_detection',
     source: 'camera',
-    location: { type: 'Point', coordinates: [77.6007, 12.9634] },
+    location: { type: 'Point', coordinates: [73.8750, 18.4550] },
     timestamp: new Date(Date.now() - 300000),
     confidence: 0.94,
     synced: true,
-    description: 'Fire detected – Sector 12 Industrial',
+    description: 'Fire detected – Sector 12 Hadapsar',
     severity: 'danger',
   },
   {
     event_id: 'evt-seed-2',
     type: 'hazard',
     source: 'satellite',
-    location: { type: 'Point', coordinates: [77.6088, 12.9781] },
+    location: { type: 'Point', coordinates: [73.8676, 18.4661] },
     timestamp: new Date(Date.now() - 420000),
     confidence: 0.78,
     synced: true,
-    description: 'Zone updated: Sector 7 → Warning',
+    description: 'Zone updated: Sector 7 Deccan → Warning',
     severity: 'warn',
   },
   {
@@ -126,7 +127,7 @@ const SEED_EVENTS = [
     type: 'SOS',
     source: 'device',
     device_id: 'dev-2',
-    location: { type: 'Point', coordinates: [77.6088, 12.9781] },
+    location: { type: 'Point', coordinates: [73.8676, 18.4661] },
     timestamp: new Date(Date.now() - 540000),
     confidence: 1.0,
     synced: true,
@@ -137,7 +138,7 @@ const SEED_EVENTS = [
     event_id: 'evt-seed-4',
     type: 'hazard',
     source: 'camera',
-    location: { type: 'Point', coordinates: [77.6007, 12.9634] },
+    location: { type: 'Point', coordinates: [73.8750, 18.4550] },
     timestamp: new Date(Date.now() - 660000),
     confidence: 0.91,
     synced: true,
@@ -148,7 +149,7 @@ const SEED_EVENTS = [
     event_id: 'evt-seed-5',
     type: 'fire',
     source: 'satellite',
-    location: { type: 'Point', coordinates: [77.5970, 12.9650] },
+    location: { type: 'Point', coordinates: [73.8720, 18.4520] },
     timestamp: new Date(Date.now() - 900000),
     confidence: 0.85,
     synced: true,
@@ -166,11 +167,11 @@ const SEED_PREDICTIONS = [
 ];
 
 const SEED_FACILITIES = [
-  { facility_id: 'fac-1', name: 'City Central Hospital', type: 'hospital', location: { type: 'Point', coordinates: [77.5900, 12.9750] }, capacity: 500, available: 120, status: 'operational' },
-  { facility_id: 'fac-2', name: 'Sector 4 Community Shelter', type: 'shelter', location: { type: 'Point', coordinates: [77.5960, 12.9730] }, capacity: 1000, available: 850, status: 'operational' },
-  { facility_id: 'fac-3', name: 'Downtown Police Station', type: 'police', location: { type: 'Point', coordinates: [77.5920, 12.9710] }, capacity: 50, available: 50, status: 'operational' },
-  { facility_id: 'fac-4', name: 'Sector 7 Relief Camp', type: 'shelter', location: { type: 'Point', coordinates: [77.6050, 12.9800] }, capacity: 2000, available: 1950, status: 'operational' },
-  { facility_id: 'fac-5', name: 'Industrial Fire Station', type: 'police', location: { type: 'Point', coordinates: [77.6020, 12.9640] }, capacity: 30, available: 28, status: 'operational' },
+  { facility_id: 'fac-1', name: 'Sassoon Hospital', type: 'hospital', location: { type: 'Point', coordinates: [73.8580, 18.4680] }, capacity: 500, available: 120, status: 'operational' },
+  { facility_id: 'fac-2', name: 'Shivajinagar Community Shelter', type: 'shelter', location: { type: 'Point', coordinates: [73.8620, 18.4650] }, capacity: 1000, available: 850, status: 'operational' },
+  { facility_id: 'fac-3', name: 'Deccan Police Station', type: 'police', location: { type: 'Point', coordinates: [73.8650, 18.4630] }, capacity: 50, available: 50, status: 'operational' },
+  { facility_id: 'fac-4', name: 'Kothrud Relief Camp', type: 'shelter', location: { type: 'Point', coordinates: [73.8780, 18.4670] }, capacity: 2000, available: 1950, status: 'operational' },
+  { facility_id: 'fac-5', name: 'Hadapsar Fire Station', type: 'police', location: { type: 'Point', coordinates: [73.8740, 18.4540] }, capacity: 30, available: 28, status: 'operational' },
 ];
 
 export async function seedDatabase() {
